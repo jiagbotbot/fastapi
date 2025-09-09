@@ -1,0 +1,25 @@
+from fastapi import FastAPI, Query
+import pandas as pd
+
+app = FastAPI()
+
+# CSV 불러오기 (앱 실행 시 메모리에 로드)
+df = pd.read_csv("land_price.csv")
+
+@app.get("/price")
+def get_price(
+    dong: str = Query(..., description="동 이름"),
+    jibun: str = Query(..., description="지번")
+):
+    # 해당 동 + 지번 찾기
+    result = df[(df["동"] == dong) & (df["지번"] == jibun)]
+    
+    if result.empty:
+        return {"message": f"{dong} {jibun} 데이터가 없습니다."}
+    
+    price = result.iloc[0]["가격"]
+    return {
+        "동": dong,
+        "지번": jibun,
+        "가격": int(price)
+    }
